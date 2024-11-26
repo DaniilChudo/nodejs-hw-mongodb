@@ -9,9 +9,9 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-app.all('*', (req, res) => {
-  res.status(404).json({ message: 'Not found' });
-});
+//app.all('*', (req, res) => {
+// res.status(404).json({ message: 'Not found' });
+//});
 
 export function setupServer() {
   const port = process.env.PORT || 3000;
