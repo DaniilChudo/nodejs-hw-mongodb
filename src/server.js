@@ -2,6 +2,8 @@ import express from 'express';
 import cors from 'cors';
 import pino from 'pino';
 import { getAllContacts } from './services/contacts.js';
+import { getContactById } from './services/contacts.js';
+import mongoose from 'mongoose';
 
 const logger = pino();
 const app = express();
@@ -35,6 +37,11 @@ app.get('/contacts', async (req, res) => {
 
 app.get('/contacts/:contactId', async (req, res) => {
   const { contactId } = req.params;
+
+  if (!mongoose.Types.ObjectId.isValid(contactId)) {
+    return res.status(400).json({ message: 'Invalid contact ID format' });
+  }
+
   try {
     const contact = await getContactById(contactId);
     if (!contact) {
@@ -46,6 +53,7 @@ app.get('/contacts/:contactId', async (req, res) => {
       data: contact,
     });
   } catch (error) {
+    console.error(error);
     res.status(500).json({ message: 'Internal server error' });
   }
 });

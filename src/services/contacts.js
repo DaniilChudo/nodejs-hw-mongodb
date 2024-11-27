@@ -1,9 +1,19 @@
 import Contact from '../models/contact.js';
 
 export async function getAllContacts() {
-  return await Contact.find({});
+  try {
+    return await Contact.find({});
+  } catch (error) {
+    console.error(error);
+    throw new Error('Error fetching contacts');
+  }
 }
 
 export async function getContactById(contactId) {
-  return await Contact.findById(contactId);
+  try {
+    return await Contact.findById(contactId);
+  } catch (error) {
+    console.error(error);
+    throw new Error('Error fetching contact by ID');
+  }
 }
