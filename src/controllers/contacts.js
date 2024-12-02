@@ -8,6 +8,7 @@ import {
 import createError from 'http-errors';
 import { ctrlWrapper } from '../utils/ctrlWrapper.js';
 
+// Контролери
 export const getContacts = ctrlWrapper(async (req, res) => {
   const contacts = await getAllContacts();
   res.status(200).json({

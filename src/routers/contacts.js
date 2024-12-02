@@ -1,19 +1,27 @@
-// src/routers/contacts.js
 import express from 'express';
 import {
-  getAllContacts,
-  getContactById,
-  createContact,
-  updateContact,
-  deleteContact,
+  getContacts,
+  getContact,
+  createNewContact,
+  updateExistingContact,
+  deleteExistingContact,
 } from '../controllers/contacts.js';
 
 const router = express.Router();
 
-router.get('/', getAllContacts);
-router.get('/:contactId', getContactById);
-router.post('/', createContact);
-router.patch('/:contactId', updateContact);
-router.delete('/:contactId', deleteContact);
+// Роут для отримання всіх контактів
+router.get('/contacts', getContacts);
+
+// Роут для отримання контакту за ID
+router.get('/contacts/:contactId', getContact);
+
+// Роут для створення нового контакту
+router.post('/contacts', createNewContact);
+
+// Роут для оновлення контакту
+router.patch('/contacts/:contactId', updateExistingContact);
+
+// Роут для видалення контакту
+router.delete('/contacts/:contactId', deleteExistingContact);
 
 export default router;
