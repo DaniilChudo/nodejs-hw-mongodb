@@ -9,11 +9,37 @@ import createError from 'http-errors';
 import { ctrlWrapper } from '../utils/ctrlWrapper.js';
 
 export const getContacts = ctrlWrapper(async (req, res) => {
-  const contacts = await getAllContacts();
+  const {
+    page = 1,
+    perPage = 10,
+    sortBy = 'name',
+    sortOrder = 'asc',
+    type,
+    isFavourite,
+  } = req.query;
+  const skip = (page - 1) * perPage;
+  const filter = {};
+
+  if (type) filter.contactType = type;
+  if (isFavourite !== undefined) filter.isFavourite = isFavourite === 'true';
+
+  const sort = {};
+  sort[sortBy] = sortOrder === 'asc' ? 1 : -1;
+
+  const contacts = await getAllContacts({ skip, perPage, filter, sort });
+
   res.status(200).json({
     status: 200,
     message: 'Successfully found contacts!',
-    data: contacts,
+    data: {
+      data: contacts,
+      page,
+      perPage,
+      totalItems: contacts.length,
+      totalPages: Math.ceil(contacts.length / perPage),
+      hasPreviousPage: page > 1,
+      hasNextPage: page < Math.ceil(contacts.length / perPage),
+    },
   });
 });
 

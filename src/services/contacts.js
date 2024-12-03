@@ -1,49 +1,23 @@
 import Contact from '../models/contact.js';
 
-export async function getAllContacts() {
-  try {
-    return await Contact.find({});
-  } catch (error) {
-    console.error(error);
-    throw new Error('Error fetching contacts');
-  }
-}
+export const createContact = async (contactData) => {
+  const contact = new Contact(contactData);
+  await contact.save();
+  return contact;
+};
 
-export async function getContactById(contactId) {
-  try {
-    return await Contact.findById(contactId);
-  } catch (error) {
-    console.error(error);
-    throw new Error('Error fetching contact by ID');
-  }
-}
+export const getAllContacts = async ({ skip, perPage, filter, sort }) => {
+  return Contact.find(filter).skip(skip).limit(perPage).sort(sort);
+};
 
-export async function createContact(contactData) {
-  try {
-    const contact = new Contact(contactData);
-    return await contact.save();
-  } catch (error) {
-    console.error(error);
-    throw new Error('Error creating contact');
-  }
-}
+export const getContactById = async (contactId) => {
+  return Contact.findById(contactId);
+};
 
-export async function updateContact(contactId, contactData) {
-  try {
-    return await Contact.findByIdAndUpdate(contactId, contactData, {
-      new: true,
-    });
-  } catch (error) {
-    console.error(error);
-    throw new Error('Error updating contact');
-  }
-}
+export const updateContact = async (contactId, contactData) => {
+  return Contact.findByIdAndUpdate(contactId, contactData, { new: true });
+};
 
-export async function deleteContact(contactId) {
-  try {
-    return await Contact.findByIdAndDelete(contactId);
-  } catch (error) {
-    console.error(error);
-    throw new Error('Error deleting contact');
-  }
-}
+export const deleteContact = async (contactId) => {
+  return Contact.findByIdAndDelete(contactId);
+};

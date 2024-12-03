@@ -1,19 +1,25 @@
-// src/routers/contacts.js
 import express from 'express';
 import {
-  getAllContacts,
-  getContactById,
-  createContact,
-  updateContact,
-  deleteContact,
+  getContacts,
+  getContact,
+  createNewContact,
+  updateExistingContact,
+  deleteExistingContact,
 } from '../controllers/contacts.js';
+import { validateBody } from '../middlewares/validate.js';
+import { isValidId } from '../middlewares/validate.js'; // Новий middleware
 
 const router = express.Router();
 
-router.get('/', getAllContacts);
-router.get('/:contactId', getContactById);
-router.post('/', createContact);
-router.patch('/:contactId', updateContact);
-router.delete('/:contactId', deleteContact);
+router.get('/contacts', getContacts);
+router.get('/contacts/:contactId', isValidId, getContact);
+router.post('/contacts', validateBody('createContact'), createNewContact);
+router.patch(
+  '/contacts/:contactId',
+  isValidId,
+  validateBody('updateContact'),
+  updateExistingContact,
+);
+router.delete('/contacts/:contactId', isValidId, deleteExistingContact);
 
 export default router;
