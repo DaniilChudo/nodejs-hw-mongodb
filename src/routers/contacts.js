@@ -6,22 +6,20 @@ import {
   updateExistingContact,
   deleteExistingContact,
 } from '../controllers/contacts.js';
+import { validateBody } from '../middlewares/validate.js';
+import { isValidId } from '../middlewares/validate.js'; // Новий middleware
 
 const router = express.Router();
 
-// Роут для отримання всіх контактів
 router.get('/contacts', getContacts);
-
-// Роут для отримання контакту за ID
-router.get('/contacts/:contactId', getContact);
-
-// Роут для створення нового контакту
-router.post('/contacts', createNewContact);
-
-// Роут для оновлення контакту
-router.patch('/contacts/:contactId', updateExistingContact);
-
-// Роут для видалення контакту
-router.delete('/contacts/:contactId', deleteExistingContact);
+router.get('/contacts/:contactId', isValidId, getContact);
+router.post('/contacts', validateBody('createContact'), createNewContact);
+router.patch(
+  '/contacts/:contactId',
+  isValidId,
+  validateBody('updateContact'),
+  updateExistingContact,
+);
+router.delete('/contacts/:contactId', isValidId, deleteExistingContact);
 
 export default router;
