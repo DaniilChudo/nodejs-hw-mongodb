@@ -7,9 +7,10 @@ import {
 } from '../services/contacts.js';
 import createError from 'http-errors';
 import { ctrlWrapper } from '../utils/ctrlWrapper.js';
+import Contact from '../models/contact.js';
 
 export const getContacts = ctrlWrapper(async (req, res) => {
-  const {
+  let {
     page = 1,
     perPage = 10,
     sortBy = 'name',
@@ -17,6 +18,10 @@ export const getContacts = ctrlWrapper(async (req, res) => {
     type,
     isFavourite,
   } = req.query;
+
+  page = Number(page);
+  perPage = Number(perPage);
+
   const skip = (page - 1) * perPage;
   const filter = {};
 
@@ -28,6 +33,9 @@ export const getContacts = ctrlWrapper(async (req, res) => {
 
   const contacts = await getAllContacts({ skip, perPage, filter, sort });
 
+  const totalItems = await Contact.countDocuments(filter);
+  const totalPages = Math.ceil(totalItems / perPage);
+
   res.status(200).json({
     status: 200,
     message: 'Successfully found contacts!',
@@ -35,10 +43,10 @@ export const getContacts = ctrlWrapper(async (req, res) => {
       data: contacts,
       page,
       perPage,
-      totalItems: contacts.length,
-      totalPages: Math.ceil(contacts.length / perPage),
+      totalItems,
+      totalPages,
       hasPreviousPage: page > 1,
-      hasNextPage: page < Math.ceil(contacts.length / perPage),
+      hasNextPage: page < totalPages,
     },
   });
 });

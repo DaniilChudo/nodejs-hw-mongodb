@@ -7,17 +7,21 @@ import {
   deleteExistingContact,
 } from '../controllers/contacts.js';
 import { validateBody } from '../middlewares/validate.js';
-import { isValidId } from '../middlewares/validate.js'; // Новий middleware
+import { isValidId } from '../middlewares/validate.js';
+import {
+  createContactSchema,
+  updateContactSchema,
+} from '../middlewares/validate.js';
 
 const router = express.Router();
 
 router.get('/contacts', getContacts);
 router.get('/contacts/:contactId', isValidId, getContact);
-router.post('/contacts', validateBody('createContact'), createNewContact);
+router.post('/contacts', validateBody(createContactSchema), createNewContact);
 router.patch(
   '/contacts/:contactId',
   isValidId,
-  validateBody('updateContact'),
+  validateBody(updateContactSchema),
   updateExistingContact,
 );
 router.delete('/contacts/:contactId', isValidId, deleteExistingContact);
