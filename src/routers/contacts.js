@@ -6,20 +6,40 @@ import {
   updateExistingContact,
   deleteExistingContact,
 } from '../controllers/contacts.js';
+import { authenticate } from '../middlewares/authenticate.js';
 import { validateBody } from '../middlewares/validate.js';
-import { isValidId } from '../middlewares/validate.js'; // Новий middleware
+import { isValidId } from '../middlewares/validate.js';
+import {
+  createContactSchema,
+  updateContactSchema,
+} from '../middlewares/validate.js';
 
 const router = express.Router();
 
-router.get('/contacts', getContacts);
-router.get('/contacts/:contactId', isValidId, getContact);
-router.post('/contacts', validateBody('createContact'), createNewContact);
+router.get('/contacts', authenticate, getContacts);
+
+router.get('/contacts/:contactId', authenticate, isValidId, getContact);
+
+router.post(
+  '/contacts',
+  authenticate,
+  validateBody(createContactSchema),
+  createNewContact,
+);
+
 router.patch(
   '/contacts/:contactId',
+  authenticate,
   isValidId,
-  validateBody('updateContact'),
+  validateBody(updateContactSchema),
   updateExistingContact,
 );
-router.delete('/contacts/:contactId', isValidId, deleteExistingContact);
+
+router.delete(
+  '/contacts/:contactId',
+  authenticate,
+  isValidId,
+  deleteExistingContact,
+);
 
 export default router;
