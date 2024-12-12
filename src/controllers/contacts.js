@@ -53,9 +53,9 @@ export const getContacts = ctrlWrapper(async (req, res) => {
 
 export const getContact = ctrlWrapper(async (req, res) => {
   const { contactId } = req.params;
-  const contact = await getContactById(contactId);
+  const contact = await getContactById(contactId, req.user._id); // Додаємо перевірку за userId
 
-  if (!contact || contact.userId.toString() !== req.user._id.toString()) {
+  if (!contact) {
     throw createError(404, 'Contact not found or unauthorized');
   }
 
@@ -67,7 +67,7 @@ export const getContact = ctrlWrapper(async (req, res) => {
 });
 
 export const createNewContact = ctrlWrapper(async (req, res) => {
-  const contactData = { ...req.body, userId: req.user._id };
+  const contactData = { ...req.body, userId: req.user._id }; // Додаємо userId
   const contact = await createContact(contactData);
 
   res.status(201).json({
@@ -79,13 +79,13 @@ export const createNewContact = ctrlWrapper(async (req, res) => {
 
 export const updateExistingContact = ctrlWrapper(async (req, res) => {
   const { contactId } = req.params;
-  const contact = await getContactById(contactId);
+  const contact = await getContactById(contactId, req.user._id); // Додаємо перевірку за userId
 
-  if (!contact || contact.userId.toString() !== req.user._id.toString()) {
+  if (!contact) {
     throw createError(404, 'Contact not found or unauthorized');
   }
 
-  const updatedContact = await updateContact(contactId, req.body);
+  const updatedContact = await updateContact(contactId, req.user._id, req.body); // Додаємо userId
   res.status(200).json({
     status: 200,
     message: 'Successfully patched a contact!',
@@ -95,12 +95,12 @@ export const updateExistingContact = ctrlWrapper(async (req, res) => {
 
 export const deleteExistingContact = ctrlWrapper(async (req, res) => {
   const { contactId } = req.params;
-  const contact = await getContactById(contactId);
+  const contact = await getContactById(contactId, req.user._id); // Додаємо перевірку за userId
 
-  if (!contact || contact.userId.toString() !== req.user._id.toString()) {
+  if (!contact) {
     throw createError(404, 'Contact not found or unauthorized');
   }
 
-  await deleteContact(contactId);
+  await deleteContact(contactId, req.user._id); // Додаємо userId
   res.status(204).send();
 });

@@ -95,3 +95,52 @@ export const getCurrentUser = ctrlWrapper(async (req, res) => {
     },
   });
 });
+
+export const refreshSession = ctrlWrapper(async (req, res) => {
+  const refreshToken = req.cookies.refreshToken;
+
+  if (!refreshToken) {
+    throw createError(401, 'No refresh token provided');
+  }
+
+  let userId;
+  try {
+    const decoded = jwt.verify(refreshToken, process.env.JWT_SECRET);
+    userId = decoded.userId;
+  } catch (error) {
+    throw createError(401, 'Invalid refresh token');
+  }
+
+  const user = await User.findById(userId);
+  if (!user) {
+    throw createError(401, 'User not found');
+  }
+
+  await Session.findOneAndDelete({ userId });
+
+  const newAccessToken = jwt.sign(
+    { userId: user._id },
+    process.env.JWT_SECRET,
+    { expiresIn: '15m' },
+  );
+  const newRefreshToken = jwt.sign(
+    { userId: user._id },
+    process.env.JWT_SECRET,
+    { expiresIn: '30d' },
+  );
+
+  const newSession = new Session({
+    userId: user._id,
+    accessToken: newAccessToken,
+    refreshToken: newRefreshToken,
+    accessTokenValidUntil: Date.now() + 15 * 60 * 1000,
+    refreshTokenValidUntil: Date.now() + 30 * 24 * 60 * 60 * 1000,
+  });
+  await newSession.save();
+
+  res.status(200).json({
+    status: 200,
+    message: 'Successfully refreshed a session!',
+    data: { accessToken: newAccessToken },
+  });
+});
