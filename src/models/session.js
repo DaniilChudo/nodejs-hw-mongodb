@@ -7,11 +7,19 @@ const sessionSchema = new mongoose.Schema(
       ref: 'User',
       required: true,
     },
-    token: {
+    accessToken: {
       type: String,
       required: true,
     },
-    expiredAt: {
+    refreshToken: {
+      type: String,
+      required: true,
+    },
+    accessTokenValidUntil: {
+      type: Date,
+      required: true,
+    },
+    refreshTokenValidUntil: {
       type: Date,
       required: true,
     },
