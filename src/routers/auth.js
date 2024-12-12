@@ -6,7 +6,6 @@ import { registerSchema, loginSchema } from '../middlewares/validate.js';
 const router = express.Router();
 
 router.post('/register', validateBody(registerSchema), register);
-
 router.post('/login', validateBody(loginSchema), login);
 
 export default router;

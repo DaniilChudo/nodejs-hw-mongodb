@@ -3,6 +3,7 @@ import jwt from 'jsonwebtoken';
 import User from '../models/user.js';
 import createError from 'http-errors';
 import { ctrlWrapper } from '../utils/ctrlWrapper.js';
+import Session from '../models/session.js';
 
 export const register = ctrlWrapper(async (req, res) => {
   const { email, password, username, name } = req.body;
@@ -55,6 +56,7 @@ export const login = ctrlWrapper(async (req, res) => {
   });
 
   await Session.findOneAndDelete({ userId: user._id });
+
   const newSession = new Session({
     userId: user._id,
     accessToken,
