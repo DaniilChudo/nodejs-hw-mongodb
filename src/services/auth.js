@@ -1,5 +1,5 @@
 import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
+import createError from 'http-errors';
 import User from '../models/user.js';
 import Session from '../models/session.js';
 
@@ -18,57 +18,64 @@ export const registerUser = async (userData) => {
   return newUser;
 };
 
-export const loginUser = async (email, password) => {
+export const loginUser = async (email, password, req) => {
   const user = await User.findOne({ email });
   if (!user) {
-    throw new Error('Invalid email or password');
+    throw createError(401, 'Invalid email or password');
   }
 
   const isMatch = await bcrypt.compare(password, user.password);
   if (!isMatch) {
-    throw new Error('Invalid email or password');
+    throw createError(401, 'Invalid email or password');
   }
 
-  const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
-    expiresIn: '1h',
-  });
-  return token;
+  req.session.userId = user._id;
+
+  return user;
 };
 
-export const refreshSessionService = async (refreshToken) => {
-  let userId;
-  try {
-    const decoded = jwt.verify(refreshToken, process.env.JWT_SECRET);
-    userId = decoded.userId;
-  } catch (error) {
-    throw new Error('Invalid refresh token');
+export const logoutUser = async (req) => {
+  return new Promise((resolve, reject) => {
+    req.session.destroy((err) => {
+      if (err) {
+        reject(new Error('Failed to log out'));
+      }
+      resolve('Successfully logged out');
+    });
+  });
+};
+
+export const getCurrentUser = async (req) => {
+  const userId = req.session.userId;
+
+  if (!userId) {
+    throw createError(401, 'Not authenticated');
   }
 
   const user = await User.findById(userId);
-  if (!user) {
-    throw new Error('User not found');
+  return user;
+};
+
+export const refreshSessionService = async (req) => {
+  const userId = req.session.userId;
+
+  if (!userId) {
+    throw createError(401, 'Not authenticated');
   }
 
   await Session.findOneAndDelete({ userId });
 
-  const newAccessToken = jwt.sign(
-    { userId: user._id },
-    process.env.JWT_SECRET,
-    { expiresIn: '15m' },
-  );
-  const newRefreshToken = jwt.sign(
-    { userId: user._id },
-    process.env.JWT_SECRET,
-    { expiresIn: '30d' },
-  );
+  const newAccessToken = 'new-access-token';
+  const newRefreshToken = 'new-refresh-token';
 
   const newSession = new Session({
-    userId: user._id,
+    userId: userId,
     accessToken: newAccessToken,
     refreshToken: newRefreshToken,
     accessTokenValidUntil: Date.now() + 15 * 60 * 1000,
     refreshTokenValidUntil: Date.now() + 30 * 24 * 60 * 60 * 1000,
   });
+
   await newSession.save();
 
   return { accessToken: newAccessToken };

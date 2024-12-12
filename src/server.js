@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import pino from 'pino';
+import session from 'express-session';
 import contactsRouter from './routers/contacts.js';
 import authRouter from './routers/auth.js';
 import { errorHandler } from './middlewares/errorHandler.js';
@@ -8,6 +9,15 @@ import { notFoundHandler } from './middlewares/notFoundHandler.js';
 
 const logger = pino();
 const app = express();
+
+app.use(
+  session({
+    secret: 'your-secret-key', // Заміни на більш безпечний ключ
+    resave: false,
+    saveUninitialized: true,
+    cookie: { secure: false },
+  }),
+);
 
 app.use(cors());
 app.use(express.json());
