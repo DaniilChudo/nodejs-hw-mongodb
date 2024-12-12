@@ -1,9 +1,7 @@
 import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
-import User from '../models/user.js';
 import createError from 'http-errors';
+import User from '../models/user.js';
 import { ctrlWrapper } from '../utils/ctrlWrapper.js';
-import Session from '../models/session.js';
 
 export const register = ctrlWrapper(async (req, res) => {
   const { email, password, username, name } = req.body;
@@ -48,99 +46,52 @@ export const login = ctrlWrapper(async (req, res) => {
     throw createError(401, 'Invalid email or password');
   }
 
-  const accessToken = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
-    expiresIn: '15m',
-  });
-  const refreshToken = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
-    expiresIn: '30d',
-  });
-
-  await Session.findOneAndDelete({ userId: user._id });
-
-  const newSession = new Session({
-    userId: user._id,
-    accessToken,
-    refreshToken,
-    accessTokenValidUntil: Date.now() + 15 * 60 * 1000,
-    refreshTokenValidUntil: Date.now() + 30 * 24 * 60 * 60 * 1000,
-  });
-  await newSession.save();
+  // Створюємо сесію
+  req.session.userId = user._id;
 
   res.status(200).json({
     status: 200,
-    message: 'Successfully logged in an user!',
-    data: { accessToken },
+    message: 'Successfully logged in!',
+    data: {
+      user: {
+        name: user.name,
+        email: user.email,
+        username: user.username,
+      },
+    },
   });
 });
 
 export const logout = ctrlWrapper(async (req, res) => {
-  res.status(200).json({
-    status: 200,
-    message: 'User successfully logged out',
+  req.session.destroy((err) => {
+    if (err) {
+      return res.status(500).json({ message: 'Failed to log out' });
+    }
+    res.status(200).json({
+      status: 200,
+      message: 'Successfully logged out',
+    });
   });
 });
 
 export const getCurrentUser = ctrlWrapper(async (req, res) => {
-  const { _id, email, username } = req.user;
+  const userId = req.session.userId;
+
+  if (!userId) {
+    throw createError(401, 'Not authenticated');
+  }
+
+  const user = await User.findById(userId);
 
   res.status(200).json({
     status: 200,
     message: 'User data retrieved successfully',
     data: {
       user: {
-        _id,
-        email,
-        username,
+        _id: user._id,
+        email: user.email,
+        username: user.username,
       },
     },
-  });
-});
-
-export const refreshSession = ctrlWrapper(async (req, res) => {
-  const refreshToken = req.cookies.refreshToken;
-
-  if (!refreshToken) {
-    throw createError(401, 'No refresh token provided');
-  }
-
-  let userId;
-  try {
-    const decoded = jwt.verify(refreshToken, process.env.JWT_SECRET);
-    userId = decoded.userId;
-  } catch (error) {
-    throw createError(401, 'Invalid refresh token');
-  }
-
-  const user = await User.findById(userId);
-  if (!user) {
-    throw createError(401, 'User not found');
-  }
-
-  await Session.findOneAndDelete({ userId });
-
-  const newAccessToken = jwt.sign(
-    { userId: user._id },
-    process.env.JWT_SECRET,
-    { expiresIn: '15m' },
-  );
-  const newRefreshToken = jwt.sign(
-    { userId: user._id },
-    process.env.JWT_SECRET,
-    { expiresIn: '30d' },
-  );
-
-  const newSession = new Session({
-    userId: user._id,
-    accessToken: newAccessToken,
-    refreshToken: newRefreshToken,
-    accessTokenValidUntil: Date.now() + 15 * 60 * 1000,
-    refreshTokenValidUntil: Date.now() + 30 * 24 * 60 * 60 * 1000,
-  });
-  await newSession.save();
-
-  res.status(200).json({
-    status: 200,
-    message: 'Successfully refreshed a session!',
-    data: { accessToken: newAccessToken },
   });
 });
