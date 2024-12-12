@@ -2,7 +2,6 @@ import bcrypt from 'bcryptjs';
 import createError from 'http-errors';
 import User from '../models/user.js';
 import { ctrlWrapper } from '../utils/ctrlWrapper.js';
-
 export const register = ctrlWrapper(async (req, res) => {
   const { email, password, username, name } = req.body;
 
