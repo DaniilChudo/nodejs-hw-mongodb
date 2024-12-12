@@ -17,7 +17,6 @@ import {
 const router = express.Router();
 
 router.get('/contacts', authenticate, getContacts);
-
 router.get('/contacts/:contactId', authenticate, isValidId, getContact);
 
 router.post(
