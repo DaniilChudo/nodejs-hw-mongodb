@@ -67,8 +67,8 @@ export const getContact = ctrlWrapper(async (req, res) => {
 });
 
 export const createNewContact = ctrlWrapper(async (req, res) => {
-  const contactData = { ...req.body, userId: req.user._id }; // Додаємо userId
-  const contact = await createContact(contactData);
+  const contactData = { ...req.body, userId: req.user._id };
+  const contact = await createContact(req.user._id, contactData);
 
   res.status(201).json({
     status: 201,
