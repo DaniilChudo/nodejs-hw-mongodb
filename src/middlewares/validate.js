@@ -20,7 +20,7 @@ export const updateContactSchema = Joi.object({
 
 export function validateBody(schema) {
   return (req, res, next) => {
-    const { error } = schema.validate(req.body, { abortEarly: false }); // Повертаємо всі помилки
+    const { error } = schema.validate(req.body, { abortEarly: false });
     if (error) {
       throw createError(
         400,
@@ -31,10 +31,20 @@ export function validateBody(schema) {
   };
 }
 
+export const registerSchema = Joi.object({
+  email: Joi.string().email().required(),
+  password: Joi.string().min(6).required(),
+  username: Joi.string().min(3).max(20).required(),
+});
+
+export const loginSchema = Joi.object({
+  email: Joi.string().email().required(),
+  password: Joi.string().min(6).required(),
+});
+
 export function isValidId(req, res, next) {
   const { contactId } = req.params;
   if (!mongoose.Types.ObjectId.isValid(contactId)) {
-    // Використовуємо mongoose для валідації
     return next(createError(400, 'Invalid contact ID format'));
   }
   next();
