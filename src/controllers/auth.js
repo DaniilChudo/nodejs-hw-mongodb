@@ -23,11 +23,9 @@ export const register = ctrlWrapper(async (req, res) => {
     status: 201,
     message: 'Successfully registered a user!',
     data: {
-      user: {
-        name: newUser.name,
-        email: newUser.email,
-        username: newUser.username,
-      },
+      name: newUser.name,
+      email: newUser.email,
+      username: newUser.username,
     },
   });
 });
