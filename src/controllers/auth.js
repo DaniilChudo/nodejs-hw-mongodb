@@ -2,6 +2,7 @@ import bcrypt from 'bcryptjs';
 import createError from 'http-errors';
 import User from '../models/user.js';
 import { ctrlWrapper } from '../utils/ctrlWrapper.js';
+
 export const register = ctrlWrapper(async (req, res) => {
   const { email, password, username, name } = req.body;
 
@@ -45,16 +46,13 @@ export const login = ctrlWrapper(async (req, res) => {
 
   // Створюємо сесію
   req.session.userId = user._id;
-
   res.status(200).json({
     status: 200,
     message: 'Successfully logged in!',
     data: {
-      user: {
-        name: user.name,
-        email: user.email,
-        username: user.username,
-      },
+      name: user.name,
+      email: user.email,
+      username: user.username,
     },
   });
 });
@@ -84,11 +82,9 @@ export const getCurrentUser = ctrlWrapper(async (req, res) => {
     status: 200,
     message: 'User data retrieved successfully',
     data: {
-      user: {
-        _id: user._id,
-        email: user.email,
-        username: user.username,
-      },
+      _id: user._id,
+      email: user.email,
+      username: user.username,
     },
   });
 });

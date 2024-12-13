@@ -1,8 +1,11 @@
 export const authenticate = (req, res, next) => {
-  if (!req.session.userId) {
+  const userId = req.session.userId;
+
+  if (!userId) {
     return res.status(401).json({ message: 'Not authorized' });
   }
 
-  req.user = { _id: req.session.userId };
+  req.user = { _id: userId };
+
   next();
 };
