@@ -1,5 +1,5 @@
 import bcrypt from 'bcryptjs';
-import createError from 'http-errors';
+import createHttpError from 'http-errors';
 import User from '../models/user.js';
 import { ctrlWrapper } from '../utils/ctrlWrapper.js';
 import { loginUser } from '../services/auth.js'; // Додано правильне імпортування
@@ -33,18 +33,25 @@ export const register = ctrlWrapper(async (req, res) => {
 });
 
 export const login = ctrlWrapper(async (req, res) => {
-  const user = await loginUser(req.body);
+  const { email, password } = req.body;
 
-  // Створення сесії для користувача
-  req.session.userId = user._id; // Зберігаємо userId в сесії
+  const user = await loginUser({ email, password });
+
+  if (!user) {
+    throw createHttpError(401, 'Invalid email or password');
+  }
+
+  req.session.userId = user._id;
 
   res.status(200).json({
     status: 200,
     message: 'Successfully logged in!',
     data: {
-      name: user.name,
-      email: user.email,
-      username: user.username,
+      user: {
+        name: user.name,
+        email: user.email,
+        username: user.username,
+      },
     },
   });
 });

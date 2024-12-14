@@ -1,5 +1,5 @@
 import bcrypt from 'bcryptjs';
-import createError from 'http-errors';
+import createHttpError from 'http-errors';
 import User from '../models/user.js';
 import Session from '../models/session.js';
 
@@ -21,19 +21,16 @@ export const registerUser = async (userData) => {
 export const loginUser = async (payload) => {
   const { email, password } = payload;
 
-  // Знаходимо користувача по email
   const user = await User.findOne({ email });
   if (!user) {
     throw createHttpError(404, 'User not found');
   }
 
-  // Порівнюємо паролі
   const isEqual = await bcrypt.compare(password, user.password);
   if (!isEqual) {
     throw createHttpError(401, 'Unauthorized');
   }
 
-  // Повертаємо знайденого користувача
   return user;
 };
 
