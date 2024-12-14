@@ -32,27 +32,20 @@ export const register = ctrlWrapper(async (req, res) => {
 });
 
 export const login = ctrlWrapper(async (req, res) => {
-  const { email, password } = req.body;
+  const user = await loginUser(req.body);
 
-  const user = await User.findOne({ email });
-  if (!user) {
-    throw createError(401, 'Invalid email or password');
-  }
+  // Створення сесії для користувача
+  req.session.userId = user._id; // Зберігаємо userId в сесії
 
-  const isPasswordValid = await bcrypt.compare(password, user.password);
-  if (!isPasswordValid) {
-    throw createError(401, 'Invalid email or password');
-  }
-
-  // Створюємо сесію
-  req.session.userId = user._id;
   res.status(200).json({
     status: 200,
     message: 'Successfully logged in!',
     data: {
-      name: user.name,
-      email: user.email,
-      username: user.username,
+      user: {
+        name: user.name,
+        email: user.email,
+        username: user.username,
+      },
     },
   });
 });
