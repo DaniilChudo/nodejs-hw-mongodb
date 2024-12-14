@@ -18,7 +18,9 @@ export const registerUser = async (userData) => {
   return newUser;
 };
 
-export const loginUser = async (email, password, req) => {
+export const loginUser = async (payload) => {
+  const { email, password } = payload;
+
   const user = await User.findOne({ email });
   if (!user) {
     throw createError(401, 'Invalid email or password');
@@ -29,9 +31,7 @@ export const loginUser = async (email, password, req) => {
     throw createError(401, 'Invalid email or password');
   }
 
-  req.session.userId = user._id;
-
-  return user;
+  return user; // Повертаємо користувача для використання в контролері
 };
 
 export const logoutUser = async (req) => {

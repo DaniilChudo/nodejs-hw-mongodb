@@ -2,6 +2,7 @@ import bcrypt from 'bcryptjs';
 import createError from 'http-errors';
 import User from '../models/user.js';
 import { ctrlWrapper } from '../utils/ctrlWrapper.js';
+
 export const register = ctrlWrapper(async (req, res) => {
   const { email, password, username, name } = req.body;
 
@@ -31,20 +32,10 @@ export const register = ctrlWrapper(async (req, res) => {
 });
 
 export const login = ctrlWrapper(async (req, res) => {
-  const { email, password } = req.body;
+  const user = await loginUser(req.body);
 
-  const user = await User.findOne({ email });
-  if (!user) {
-    throw createError(401, 'Invalid email or password');
-  }
-
-  const isPasswordValid = await bcrypt.compare(password, user.password);
-  if (!isPasswordValid) {
-    throw createError(401, 'Invalid email or password');
-  }
-
-  // Створюємо сесію
-  req.session.userId = user._id;
+  // Створення сесії для користувача
+  req.session.userId = user._id; // Зберігаємо userId в сесії
 
   res.status(200).json({
     status: 200,
@@ -84,11 +75,9 @@ export const getCurrentUser = ctrlWrapper(async (req, res) => {
     status: 200,
     message: 'User data retrieved successfully',
     data: {
-      user: {
-        _id: user._id,
-        email: user.email,
-        username: user.username,
-      },
+      _id: user._id,
+      email: user.email,
+      username: user.username,
     },
   });
 });
