@@ -2,6 +2,7 @@ import bcrypt from 'bcryptjs';
 import createError from 'http-errors';
 import User from '../models/user.js';
 import { ctrlWrapper } from '../utils/ctrlWrapper.js';
+import { loginUser } from '../services/auth.js'; // Додано правильне імпортування
 
 export const register = ctrlWrapper(async (req, res) => {
   const { email, password, username, name } = req.body;
@@ -41,11 +42,9 @@ export const login = ctrlWrapper(async (req, res) => {
     status: 200,
     message: 'Successfully logged in!',
     data: {
-      user: {
-        name: user.name,
-        email: user.email,
-        username: user.username,
-      },
+      name: user.name,
+      email: user.email,
+      username: user.username,
     },
   });
 });

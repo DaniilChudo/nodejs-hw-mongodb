@@ -21,17 +21,20 @@ export const registerUser = async (userData) => {
 export const loginUser = async (payload) => {
   const { email, password } = payload;
 
+  // Знаходимо користувача по email
   const user = await User.findOne({ email });
   if (!user) {
-    throw createError(401, 'Invalid email or password');
+    throw createHttpError(404, 'User not found');
   }
 
-  const isMatch = await bcrypt.compare(password, user.password);
-  if (!isMatch) {
-    throw createError(401, 'Invalid email or password');
+  // Порівнюємо паролі
+  const isEqual = await bcrypt.compare(password, user.password);
+  if (!isEqual) {
+    throw createHttpError(401, 'Unauthorized');
   }
 
-  return user; // Повертаємо користувача для використання в контролері
+  // Повертаємо знайденого користувача
+  return user;
 };
 
 export const logoutUser = async (req) => {
