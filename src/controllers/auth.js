@@ -1,7 +1,8 @@
 import bcrypt from 'bcryptjs';
-import createError from 'http-errors';
+import createHttpError from 'http-errors';
 import User from '../models/user.js';
 import { ctrlWrapper } from '../utils/ctrlWrapper.js';
+import { loginUser } from '../services/auth.js'; // Додано правильне імпортування
 
 export const register = ctrlWrapper(async (req, res) => {
   const { email, password, username, name } = req.body;
@@ -32,21 +33,35 @@ export const register = ctrlWrapper(async (req, res) => {
 });
 
 export const login = ctrlWrapper(async (req, res) => {
-  const user = await loginUser(req.body);
+  const { email, password } = req.body;
 
-  // Створення сесії для користувача
-  req.session.userId = user._id; // Зберігаємо userId в сесії
+  const user = await loginUser({ email, password });
+
+  if (!user) {
+    throw createHttpError(401, 'Invalid email or password');
+  }
+
+  if (req.session.userId) {
+    req.session.destroy();
+  }
+
+  const accessToken = 'new-access-token';
+  const refreshToken = 'new-refresh-token';
+
+  req.session.userId = user._id;
+  req.session.accessToken = accessToken;
+  req.session.refreshToken = refreshToken;
+
+  res.cookie('refreshToken', refreshToken, {
+    httpOnly: true,
+    secure: false,
+    maxAge: 30 * 24 * 60 * 60 * 1000,
+  });
 
   res.status(200).json({
     status: 200,
-    message: 'Successfully logged in!',
-    data: {
-      user: {
-        name: user.name,
-        email: user.email,
-        username: user.username,
-      },
-    },
+    message: 'Successfully logged in an user!',
+    data: { accessToken },
   });
 });
 

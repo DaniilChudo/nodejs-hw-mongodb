@@ -1,5 +1,5 @@
 import bcrypt from 'bcryptjs';
-import createError from 'http-errors';
+import createHttpError from 'http-errors';
 import User from '../models/user.js';
 import Session from '../models/session.js';
 
@@ -18,20 +18,19 @@ export const registerUser = async (userData) => {
   return newUser;
 };
 
-export const loginUser = async (payload) => {
-  const { email, password } = payload;
-
+export const loginUser = async ({ email, password }) => {
   const user = await User.findOne({ email });
+
   if (!user) {
-    throw createError(401, 'Invalid email or password');
+    throw createHttpError(404, 'User not found');
   }
 
   const isMatch = await bcrypt.compare(password, user.password);
   if (!isMatch) {
-    throw createError(401, 'Invalid email or password');
+    throw createHttpError(401, 'Invalid email or password');
   }
 
-  return user; // Повертаємо користувача для використання в контролері
+  return user;
 };
 
 export const logoutUser = async (req) => {
