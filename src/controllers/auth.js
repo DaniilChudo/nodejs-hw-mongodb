@@ -41,27 +41,18 @@ export const login = ctrlWrapper(async (req, res) => {
     throw createHttpError(401, 'Invalid email or password');
   }
 
-  if (req.session.userId) {
-    req.session.destroy();
-  }
-
-  const accessToken = 'new-access-token';
-  const refreshToken = 'new-refresh-token';
-
   req.session.userId = user._id;
-  req.session.accessToken = accessToken;
-  req.session.refreshToken = refreshToken;
-
-  res.cookie('refreshToken', refreshToken, {
-    httpOnly: true,
-    secure: false,
-    maxAge: 30 * 24 * 60 * 60 * 1000,
-  });
 
   res.status(200).json({
     status: 200,
-    message: 'Successfully logged in an user!',
-    data: { accessToken },
+    message: 'Successfully logged in!',
+    data: {
+      user: {
+        name: user.name,
+        email: user.email,
+        username: user.username,
+      },
+    },
   });
 });
 
