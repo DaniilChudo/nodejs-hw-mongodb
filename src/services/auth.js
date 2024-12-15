@@ -18,17 +18,16 @@ export const registerUser = async (userData) => {
   return newUser;
 };
 
-export const loginUser = async (payload) => {
-  const { email, password } = payload;
-
+export const loginUser = async ({ email, password }) => {
   const user = await User.findOne({ email });
+
   if (!user) {
     throw createHttpError(404, 'User not found');
   }
 
-  const isEqual = await bcrypt.compare(password, user.password);
-  if (!isEqual) {
-    throw createHttpError(401, 'Unauthorized');
+  const isMatch = await bcrypt.compare(password, user.password);
+  if (!isMatch) {
+    throw createHttpError(401, 'Invalid email or password');
   }
 
   return user;
