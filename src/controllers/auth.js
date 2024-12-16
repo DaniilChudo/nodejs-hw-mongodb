@@ -26,7 +26,12 @@ export const register = ctrlWrapper(async (req, res) => {
 export const login = ctrlWrapper(async (req, res) => {
   const { email, password } = req.body;
   const user = await loginUser({ email, password });
+
+  console.log('User logged in:', user);
+
   req.session.userId = user._id;
+  console.log('Session after login:', req.session);
+
   res.status(200).json({
     status: 200,
     message: 'Successfully logged in!',
