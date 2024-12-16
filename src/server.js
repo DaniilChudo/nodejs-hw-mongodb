@@ -12,10 +12,13 @@ const app = express();
 
 app.use(
   session({
-    secret: 'your-secret-key', // Заміни на більш безпечний ключ
+    secret: 'your-secret-key',
     resave: false,
     saveUninitialized: true,
-    cookie: { secure: false },
+    cookie: {
+      secure: false,
+      maxAge: 24 * 60 * 60 * 1000,
+    },
   }),
 );
 
