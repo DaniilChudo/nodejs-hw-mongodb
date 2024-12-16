@@ -2,88 +2,46 @@ import bcrypt from 'bcryptjs';
 import createHttpError from 'http-errors';
 import User from '../models/user.js';
 import { ctrlWrapper } from '../utils/ctrlWrapper.js';
-import { loginUser } from '../services/auth.js'; // Додано правильне імпортування
+import {
+  loginUser,
+  registerUser,
+  refreshSessionService,
+  logoutUser,
+} from '../services/auth.js';
 
 export const register = ctrlWrapper(async (req, res) => {
-  const { email, password, username, name } = req.body;
-
+  const { email, password, name } = req.body;
   const existingUser = await User.findOne({ email });
   if (existingUser) {
-    throw createError(409, 'Email in use');
+    throw createHttpError(409, 'Email in use');
   }
-
   const hashedPassword = await bcrypt.hash(password, 10);
-
-  const newUser = await User.create({
-    name,
-    email,
-    password: hashedPassword,
-    username,
-  });
-
+  const newUser = await registerUser({ name, email, password: hashedPassword });
   res.status(201).json({
     status: 201,
     message: 'Successfully registered a user!',
-    data: {
-      name: newUser.name,
-      email: newUser.email,
-      username: newUser.username,
-    },
+    data: { name: newUser.name, email: newUser.email },
   });
 });
-
 export const login = ctrlWrapper(async (req, res) => {
   const { email, password } = req.body;
-
   const user = await loginUser({ email, password });
-
-  if (!user) {
-    throw createHttpError(401, 'Invalid email or password');
-  }
-
   req.session.userId = user._id;
-
   res.status(200).json({
     status: 200,
     message: 'Successfully logged in!',
-    data: {
-      user: {
-        name: user.name,
-        email: user.email,
-        username: user.username,
-      },
-    },
+    data: { user: { name: user.name, email: user.email } },
   });
 });
-
-export const logout = ctrlWrapper(async (req, res) => {
-  req.session.destroy((err) => {
-    if (err) {
-      return res.status(500).json({ message: 'Failed to log out' });
-    }
-    res.status(200).json({
-      status: 200,
-      message: 'Successfully logged out',
-    });
-  });
-});
-
-export const getCurrentUser = ctrlWrapper(async (req, res) => {
-  const userId = req.session.userId;
-
-  if (!userId) {
-    throw createError(401, 'Not authenticated');
-  }
-
-  const user = await User.findById(userId);
-
+export const refresh = ctrlWrapper(async (req, res) => {
+  const newAccessToken = await refreshSessionService(req);
   res.status(200).json({
     status: 200,
-    message: 'User data retrieved successfully',
-    data: {
-      _id: user._id,
-      email: user.email,
-      username: user.username,
-    },
+    message: 'Successfully refreshed a session!',
+    data: { accessToken: newAccessToken },
   });
+});
+export const logout = ctrlWrapper(async (req, res) => {
+  await logoutUser(req);
+  res.status(204).send();
 });
